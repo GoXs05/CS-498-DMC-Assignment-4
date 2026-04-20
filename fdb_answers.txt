@@ -1,0 +1,9 @@
+Q1: FoundationDB decouples the transaction management system from the storage system to improve scalability and also fault tolerance. The TMS handles transaction ordering, conflict detection, and commit coordination, and the SS handles actually storing and serving the data. This basically lets each layer scale independently and simplifies recovery and the overall system design.
+
+Q2: The resolvers in the transaction system handle read-write conflict detection. This check happens during the commit process after the transaction has been assigned a commit version, but before it’s finalized. The resolvers compare the transaction’s read and write sets with other committed transactions to guarantee serializability.
+
+Q3: The read version is a consistent snapshot of the database at a specific point in time whic is what the transaction reads. It basically just makes sure that all reads in a transaction see a stable and consistent state of the data. This lets fdb provide strict serializability by making transactions behave as if they were executed in a single global order.
+
+Q4: Snapshot reads don’t add keys to the read conflict range, so they aren’t checked for conflicts during commit. Standard reads track dependencies and can cause a transaction to abort if conflicts are detected. Snapshot reads are useful for queries where avoiding conflicts and improving performance is more important than strict consistency.
+
+Q5: Fdb achieves cheap recovery by separating durability and state reconstruction across logservers and storageservers. During normal operation, changes are written to logservers before being applied to storageservers which guarantees durability. On failure, storageservers can easily recover by getting the latest state from logservers without replaying a full redo log in the critical path.
